@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using TriggerTrace.Enums;
 
 namespace TriggerTrace
 {
     public static class Logging
     {
-        public static Dictionary<Guid, LogObject> Logs { get; internal set; }
+        private static Dictionary<Guid, LogObject> _logs { get; set; }
+
+        public static ReadOnlyDictionary<Guid, LogObject> Logs { get { return new ReadOnlyDictionary<Guid, LogObject>(_logs); } }
 
         #region Information
 
@@ -83,13 +88,45 @@ namespace TriggerTrace
 
         #endregion Error
 
+        /// <summary>
+        /// Add a new object in the log
+        /// </summary>
+        /// <param name="log">The object to log</param>
         private static void Add(LogObject log)
         {
-            if (Logs == null)
+            if (_logs == null)
             {
-                Logs = new Dictionary<Guid, LogObject>();
+                _logs = new Dictionary<Guid, LogObject>();
             }
-            Logs.Add(Guid.NewGuid(), log);
+            _logs.Add(Guid.NewGuid(), log);
+        }
+
+        /// <summary>
+        /// Returns the log ordered ascendingly by the moment it happened
+        /// </summary>
+        public static IEnumerable<LogObject> Get()
+        {
+            return Logs.Values.OrderBy(l => l.Moment);
+        }
+
+        /// <summary>
+        /// Returns the logs of at least a level<br/>
+        /// ordered ascendingly by the moment it happened
+        /// </summary>
+        /// <param name="level">The level of logging we filter by</param>
+        public static IEnumerable<LogObject> Get(Level level)
+        {
+            return Logs.Values.Where(l => l.Level >= level).OrderBy(l => l.Moment);
+        }
+
+        /// <summary>
+        /// Returns the logs of a defined level<br/>
+        /// ordered ascendingly by the moment it happened
+        /// </summary>
+        /// <param name="level">The level of logging we filter by</param>
+        public static IEnumerable<LogObject> GetByLevel(Level level)
+        {
+            return Logs.Values.Where(l => l.Level == level).OrderBy(l => l.Moment);
         }
     }
 }
