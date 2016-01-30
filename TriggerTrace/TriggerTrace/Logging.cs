@@ -12,8 +12,6 @@ namespace TriggerTrace
         private static LogLibrary _logs { get; set; }
         public static ReadOnlyDictionary<Guid, LogObject> Logs { get { return new ReadOnlyDictionary<Guid, LogObject>(_logs.Library); } }
 
-        public static ObservableCollection<LogObject> test { get { return new ObservableCollection<LogObject>(Get()); } }
-
         #region Information
 
         private static string _information = string.Empty;
