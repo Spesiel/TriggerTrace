@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
+using System.Windows.Forms;
 using TriggerTrace.Enums;
 
 namespace TriggerTrace
 {
     public static class Logging
     {
-        private static LogLibrary _logs { get; set; }
-        public static ReadOnlyDictionary<Guid, LogObject> Logs { get { return new ReadOnlyDictionary<Guid, LogObject>(_logs.Library); } }
+        private static Dictionary<Guid, LogObject> _logs { get; set; }
+        private static Window Window { get; set; }
+
+        public static ReadOnlyDictionary<Guid, LogObject> Logs { get { return new ReadOnlyDictionary<Guid, LogObject>(_logs); } }
 
         #region Information
 
@@ -21,11 +23,8 @@ namespace TriggerTrace
             get { return _information; }
             set
             {
-                if (value != _information)
-                {
-                    _information = value;
-                    Add(new LogObject(Enums.Level.Information, value));
-                }
+                _information = value;
+                Add(new LogObject(Enums.Level.Information, value));
             }
         }
 
@@ -40,11 +39,8 @@ namespace TriggerTrace
             get { return _warning; }
             set
             {
-                if (value != _warning)
-                {
-                    _warning = value;
-                    Add(new LogObject(Enums.Level.Information, value));
-                }
+                _warning = value;
+                Add(new LogObject(Enums.Level.Warning, value));
             }
         }
 
@@ -59,11 +55,8 @@ namespace TriggerTrace
             get { return _problem; }
             set
             {
-                if (value != _problem)
-                {
-                    _problem = value;
-                    Add(new LogObject(Enums.Level.Information, value));
-                }
+                _problem = value;
+                Add(new LogObject(Enums.Level.Problem, value));
             }
         }
 
@@ -78,11 +71,8 @@ namespace TriggerTrace
             get { return _error; }
             set
             {
-                if (value != _error)
-                {
-                    _error = value;
-                    Add(new LogObject(Enums.Level.Information, value));
-                }
+                _error = value;
+                Add(new LogObject(Enums.Level.Error, value));
             }
         }
 
@@ -96,9 +86,11 @@ namespace TriggerTrace
         {
             if (_logs == null)
             {
-                _logs = new LogLibrary();
+                _logs = new Dictionary<Guid, LogObject>();
             }
-            _logs.Library.Add(Guid.NewGuid(), log);
+            _logs.Add(Guid.NewGuid(), log);
+
+            UpdateWindowList();
         }
 
         #region Getters
@@ -131,10 +123,47 @@ namespace TriggerTrace
             return Logs.Values.Where(l => l.Level == level).OrderBy(l => l.Moment);
         }
 
+        private static LogObject GetByIndex(int index)
+        {
+            return Logs.Values.OrderBy(l => l.Moment).ToList()[index];
+        }
+
         #endregion Getters
 
         public static void Show()
         {
+            Window = new Window();
+            Window.List.RetrieveVirtualItem += List_RetrieveVirtualItem;
+            UpdateWindowList();
+            Window.Show();
+        }
+
+        public static void Hide()
+        {
+            if (Window != null)
+            {
+                Window.Close();
+                Window.Dispose();
+                Window = null;
+            }
+        }
+
+        private static void List_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
+        {
+            LogObject obj = GetByIndex(e.ItemIndex);
+
+            ListViewItem lvi = new ListViewItem(obj.Moment.ToLongTimeString());
+            lvi.SubItems.Add(obj.Level.ToString());
+            lvi.SubItems.Add(obj.Message);
+            e.Item = lvi;
+        }
+
+        private static void UpdateWindowList()
+        {
+            if (Window != null)
+            {
+                Window.List.VirtualListSize = Logs.Count;
+            }
         }
     }
 }

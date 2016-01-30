@@ -51,9 +51,11 @@
             this.Level,
             this.Message});
             resources.ApplyResources(this.List, "List");
+            this.List.GridLines = true;
             this.List.Name = "List";
             this.List.UseCompatibleStateImageBehavior = false;
             this.List.View = System.Windows.Forms.View.Details;
+            this.List.VirtualMode = true;
             // 
             // Moment
             // 
@@ -81,9 +83,9 @@
         #endregion
 
         private System.Windows.Forms.TableLayoutPanel table;
-        private System.Windows.Forms.ListView List;
         private System.Windows.Forms.ColumnHeader Moment;
         private System.Windows.Forms.ColumnHeader Level;
         private System.Windows.Forms.ColumnHeader Message;
+        internal System.Windows.Forms.ListView List;
     }
 }
