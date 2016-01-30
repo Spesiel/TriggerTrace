@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using TriggerTrace.Enums;
 
@@ -8,9 +9,10 @@ namespace TriggerTrace
 {
     public static class Logging
     {
-        private static Dictionary<Guid, LogObject> _logs { get; set; }
+        private static LogLibrary _logs { get; set; }
+        public static ReadOnlyDictionary<Guid, LogObject> Logs { get { return new ReadOnlyDictionary<Guid, LogObject>(_logs.Library); } }
 
-        public static ReadOnlyDictionary<Guid, LogObject> Logs { get { return new ReadOnlyDictionary<Guid, LogObject>(_logs); } }
+        public static ObservableCollection<LogObject> test { get { return new ObservableCollection<LogObject>(Get()); } }
 
         #region Information
 
@@ -96,10 +98,12 @@ namespace TriggerTrace
         {
             if (_logs == null)
             {
-                _logs = new Dictionary<Guid, LogObject>();
+                _logs = new LogLibrary();
             }
-            _logs.Add(Guid.NewGuid(), log);
+            _logs.Library.Add(Guid.NewGuid(), log);
         }
+
+        #region Getters
 
         /// <summary>
         /// Returns the log ordered ascendingly by the moment it happened
@@ -127,6 +131,12 @@ namespace TriggerTrace
         public static IEnumerable<LogObject> GetByLevel(Level level)
         {
             return Logs.Values.Where(l => l.Level == level).OrderBy(l => l.Moment);
+        }
+
+        #endregion Getters
+
+        public static void Show()
+        {
         }
     }
 }
